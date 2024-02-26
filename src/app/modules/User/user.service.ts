@@ -178,6 +178,39 @@ const getAllTransactionsOfUserORAgent = async (mobileNumber: number) => {
   return allTransactions;
 };
 
+const viewAllUsers = async () => {
+  const result = await User.find({
+    role: 'USER',
+    isAccountActive: true,
+  });
+  return result;
+};
+
+const viewAllBlockedUsers = async () => {
+  const result = await User.find({
+    role: 'USER',
+    isAccountActive: false,
+  });
+  return result;
+};
+
+const viewAllAgents = async () => {
+  const result = await User.find({
+    role: 'AGENT',
+    isAccountActive: true,
+    isAccountVerified: true,
+  });
+  return result;
+};
+
+const viewAllBlockedAgents = async () => {
+  const result = await User.find({
+    role: 'AGENT',
+    isAccountActive: false,
+  });
+  return result;
+};
+
 export const UserService = {
   createUserIntoDB,
   approveAgent,
@@ -189,4 +222,8 @@ export const UserService = {
   viewBalanceOfUserORAgent,
   getAllTransactions,
   getAllTransactionsOfUserORAgent,
+  viewAllUsers,
+  viewAllBlockedUsers,
+  viewAllAgents,
+  viewAllBlockedAgents,
 };

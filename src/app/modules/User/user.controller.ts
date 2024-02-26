@@ -107,6 +107,45 @@ const getAllTransactionsOfUserORAgent = catchAsync(async (req, res) => {
   });
 });
 
+const viewAllUsers = catchAsync(async (req, res) => {
+  const result = await UserService.viewAllUsers();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'All users',
+    data: result,
+  });
+});
+const viewAllBlockedUsers = catchAsync(async (req, res) => {
+  const result = await UserService.viewAllBlockedUsers();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'All blocked users',
+    data: result,
+  });
+});
+
+const viewAllAgents = catchAsync(async (req, res) => {
+  const result = await UserService.viewAllAgents();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'All agents',
+    data: result,
+  });
+});
+
+const viewAllBlockedAgents = catchAsync(async (req, res) => {
+  const result = await UserService.viewAllBlockedAgents();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'All blocked agents',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   approveAgent,
@@ -118,4 +157,8 @@ export const UserController = {
   viewBalanceOfUserORAgent,
   getAllTransactions,
   getAllTransactionsOfUserORAgent,
+  viewAllUsers,
+  viewAllBlockedUsers,
+  viewAllAgents,
+  viewAllBlockedAgents,
 };

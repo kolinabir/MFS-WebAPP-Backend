@@ -9,26 +9,39 @@ router.get(
   '/balance',
   auth(USER_ROLE.USER, USER_ROLE.AGENT, USER_ROLE.ADMIN),
   UserController.getBalance,
-);
-router.get('/all-money', auth(USER_ROLE.ADMIN), UserController.getAllMoney);
-router.get('/new-agents', auth(USER_ROLE.ADMIN), UserController.viewNewAgents);
+); //done
+router.get('/all-money', auth(USER_ROLE.ADMIN), UserController.getAllMoney); //done
+router.get('/new-agents', auth(USER_ROLE.ADMIN), UserController.viewNewAgents); //done
 
 router.get(
   '/transaction/:mobileNumber',
   auth(USER_ROLE.ADMIN),
   UserController.getAllTransactionsOfUserORAgent,
-);
+); //done
+
+router.get('/users', auth(USER_ROLE.ADMIN), UserController.viewAllUsers); //done
+router.get(
+  '/blocked-users',
+  auth(USER_ROLE.ADMIN),
+  UserController.viewAllBlockedUsers,
+); //done
+router.get('/agents', auth(USER_ROLE.ADMIN), UserController.viewAllAgents); //done
+router.get(
+  '/blocked-agents',
+  auth(USER_ROLE.ADMIN),
+  UserController.viewAllBlockedAgents,
+); //done
 
 router.get(
   '/balance/:mobileNumber',
   auth(USER_ROLE.ADMIN),
   UserController.viewBalanceOfUserORAgent,
-);
+); //done
 
-router.post('/', UserController.createUser);
+router.post('/', UserController.createUser); //done
 
 // router.patch('/:id', UserController.approveAgent);
-router.patch('/:id/block', auth(USER_ROLE.ADMIN), UserController.blockUser);
-router.patch('/:id/unblock', auth(USER_ROLE.ADMIN), UserController.unblockUser);
+router.patch('/:id/block', auth(USER_ROLE.ADMIN), UserController.blockUser); //done
+router.patch('/:id/unblock', auth(USER_ROLE.ADMIN), UserController.unblockUser); //done
 
 export const userRoutes = router;
