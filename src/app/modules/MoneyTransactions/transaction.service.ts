@@ -22,7 +22,7 @@ const sendMoneyToUser = async (
   try {
     session.startTransaction();
 
-    if (payload.amount < 50) {
+    if (Number(payload.amount) < 50) {
       throw new Error('Minimum amount to send is 50');
     }
 
@@ -35,10 +35,10 @@ const sendMoneyToUser = async (
     if (!sender || !receiver) {
       throw new Error('User not found');
     }
-    if (sender.balance < payload.amount) {
+    if (sender.balance < Number(payload.amount)) {
       throw new Error('Insufficient balance');
     }
-    if (payload.amount >= 100) {
+    if (Number(payload.amount) >= 100) {
       payload.transactionCharge = 5;
     } else {
       payload.transactionCharge = 0;
@@ -46,12 +46,16 @@ const sendMoneyToUser = async (
 
     const updatedSender = await User.findByIdAndUpdate(
       sender._id,
-      { $inc: { balance: -payload.amount - (payload.transactionCharge || 0) } },
+      {
+        $inc: {
+          balance: -Number(payload.amount) - (payload.transactionCharge || 0),
+        },
+      },
       { new: true, session },
     );
     const updatedReceiver = await User.findByIdAndUpdate(
       receiver._id,
-      { $inc: { balance: payload.amount } },
+      { $inc: { balance: Number(payload.amount) } },
       { new: true, session },
     );
     const updateAdmin = await User.findOneAndUpdate(
@@ -101,7 +105,7 @@ const cashOut = async (payload: TTransactionsCashOut, user: JwtPayload) => {
     if (!userExist || !agentExist) {
       throw new Error('User Or Agent not found');
     }
-    if (userExist.balance < payload.amount) {
+    if (userExist.balance < Number(payload.amount)) {
       throw new Error('Insufficient balance');
     }
     //   check if pin match
@@ -109,21 +113,21 @@ const cashOut = async (payload: TTransactionsCashOut, user: JwtPayload) => {
       throw new AppError(httpStatus.FORBIDDEN, 'PIN is not correct');
     }
     //1.5% transaction charge
-    const transactionCharge = (1.5 / 100) * payload.amount;
+    const transactionCharge = (1.5 / 100) * Number(payload.amount);
     const updatedUser = await User.findByIdAndUpdate(
       userExist._id,
-      { $inc: { balance: -payload.amount - transactionCharge } },
+      { $inc: { balance: -Number(payload.amount) - transactionCharge } },
       { new: true, session },
     );
     //   agent income 1% of the transaction
-    const agentIncome = (1 / 100) * payload.amount;
+    const agentIncome = (1 / 100) * Number(payload.amount);
     const updatedAgent = await User.findByIdAndUpdate(
       agentExist._id,
       { $inc: { balance: agentIncome } },
       { new: true, session },
     );
     //admin income 0.5% of the transaction
-    const adminIncome = (0.5 / 100) * payload.amount;
+    const adminIncome = (0.5 / 100) * Number(payload.amount);
     const updateAdmin = await User.findOneAndUpdate(
       { role: 'ADMIN' },
       { $inc: { balance: adminIncome } },
@@ -152,28 +156,33 @@ const cashOut = async (payload: TTransactionsCashOut, user: JwtPayload) => {
 };
 
 const cashIn = async (payload: TTransactionsCashIn, agent: JwtPayload) => {
+  console.log(payload, 'payload');
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
     const userExist = await User.findOne({
-      mobileNumber: payload.userMobileNumber,
+      mobileNumber: payload.mobileNumber,
     }).session(session);
     const agentExist = await User.findOne({
       mobileNumber: agent.mobileNumber,
+      role: 'AGENT',
     })
       .select('+pin')
       .session(session);
     if (!userExist || !agentExist) {
       throw new Error('User Or Agent not found');
     }
+    // check pin
     if (!(await User.isPinMatch(String(payload?.pin), agentExist?.pin))) {
       throw new AppError(httpStatus.FORBIDDEN, 'PIN is not correct');
     }
-    //check if agent balance is enough
-    if (agentExist.balance < payload.amount) {
-      throw new Error('Agent has insufficient balance');
-    }
 
+    const transactionCredit = await TransactionCashIn.create({
+      ...payload,
+      user: userExist._id,
+      agent: agentExist._id,
+      transactionType: 'CASH_IN',
+    });
     const updatedUser = await User.findByIdAndUpdate(
       userExist._id,
       { $inc: { balance: payload.amount } },
@@ -184,20 +193,13 @@ const cashIn = async (payload: TTransactionsCashIn, agent: JwtPayload) => {
       { $inc: { balance: -payload.amount } },
       { new: true, session },
     );
-    if (!updatedUser || !updatedAgent) {
+    if (!transactionCredit || !updatedUser || !updatedAgent) {
       throw new Error('CashIn failed');
     }
 
-    const result = await TransactionCashIn.create({
-      ...payload,
-      agent: agentExist._id,
-      user: userExist._id,
-      transactionType: 'CASH_IN',
-    });
     await session.commitTransaction();
     session.endSession();
-
-    return result;
+    return transactionCredit;
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

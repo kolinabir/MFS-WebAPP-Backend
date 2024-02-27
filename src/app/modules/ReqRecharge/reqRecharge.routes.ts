@@ -7,7 +7,7 @@ const router = Router();
 
 router.get(
   '/',
-  auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.ADMIN, USER_ROLE.AGENT, USER_ROLE.USER),
   ReqRechargeController.viewRechargeRequests,
 );
 router.post(

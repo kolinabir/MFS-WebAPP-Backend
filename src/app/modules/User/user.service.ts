@@ -109,12 +109,22 @@ const getAllTransactions = async (userN: JwtPayload) => {
     path: 'sender',
     select: 'name mobileNumber',
   });
-  const cashIn = await TransactionCashIn.find({
-    user: user._id,
-  }).populate({
-    path: 'agent',
-    select: 'name mobileNumber',
-  });
+  let cashIn = [];
+  if (user.role === 'AGENT') {
+    cashIn = await TransactionCashIn.find({
+      agent: user._id,
+    }).populate({
+      path: 'user',
+      select: 'name mobileNumber',
+    });
+  } else {
+    cashIn = await TransactionCashIn.find({
+      user: user._id,
+    }).populate({
+      path: 'agent',
+      select: 'name mobileNumber',
+    });
+  }
   const cashOut = await TransactionCashOut.find({
     user: user._id,
   }).populate({
@@ -161,9 +171,16 @@ const getAllTransactionsOfUserORAgent = async (mobileNumber: number) => {
   const receiveMoney = await TransactionSendMoney.find({
     receiver: user._id,
   });
-  const cashIn = await TransactionCashIn.find({
-    user: user._id,
-  });
+  let cashIn = [];
+  if (user.role === 'AGENT') {
+    cashIn = await TransactionCashIn.find({
+      agent: user._id,
+    });
+  } else {
+    cashIn = await TransactionCashIn.find({
+      user: user._id,
+    });
+  }
   const cashOut = await TransactionCashOut.find({
     user: user._id,
   });
@@ -223,6 +240,11 @@ const viewAllBlockedAgents = async () => {
   return result;
 };
 
+const viewUserDetails = async (payload: JwtPayload) => {
+  const result = await User.findById(payload.id);
+  return result;
+};
+
 export const UserService = {
   createUserIntoDB,
   approveAgent,
@@ -238,4 +260,5 @@ export const UserService = {
   viewAllBlockedUsers,
   viewAllAgents,
   viewAllBlockedAgents,
+  viewUserDetails,
 };

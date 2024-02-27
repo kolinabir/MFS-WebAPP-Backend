@@ -146,6 +146,16 @@ const viewAllBlockedAgents = catchAsync(async (req, res) => {
   });
 });
 
+const viewUserDetails = catchAsync(async (req, res) => {
+  const result = await UserService.viewUserDetails(req.user);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User details',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   approveAgent,
@@ -161,4 +171,5 @@ export const UserController = {
   viewAllBlockedUsers,
   viewAllAgents,
   viewAllBlockedAgents,
+  viewUserDetails,
 };

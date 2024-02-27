@@ -38,6 +38,12 @@ router.get(
   UserController.viewBalanceOfUserORAgent,
 ); //done
 
+router.get(
+  '/details',
+  auth(USER_ROLE.USER, USER_ROLE.AGENT),
+  UserController.viewUserDetails,
+); //done
+
 router.post('/', UserController.createUser); //done
 
 // router.patch('/:id', UserController.approveAgent);

@@ -14,7 +14,7 @@ export interface TTransactionsSendMoney {
 export interface TTransactionsCashOut {
   transactionId?: string;
   user?: Types.ObjectId;
-  pin: string;
+  pin?: string;
   agent?: Types.ObjectId;
   mobileNumber: number;
   amount: number;
@@ -24,12 +24,12 @@ export interface TTransactionsCashOut {
 }
 
 export interface TTransactionsCashIn {
-  transactionId?: string;
-  userMobileNumber: number;
   user?: Types.ObjectId;
-  amount: number;
   agent?: Types.ObjectId;
-  pin: string;
+  amount: number;
+  pin?: string;
+  mobileNumber: number;
   transactionType?: 'CASH_IN';
   transactionDate?: Date;
+  transactionCharge?: number;
 }

@@ -3,18 +3,27 @@ import { User } from '../User/user.model';
 import { TReqRecharge } from './reqRecharge.interface';
 import reqRechargeModel from './reqRecharge.model';
 import { JwtPayload } from 'jsonwebtoken';
+import AppError from '../../middlewares/Errors/AppError';
+import httpStatus from 'http-status';
 
 const reqRechargeToAdmin = async (payload: TReqRecharge, user: JwtPayload) => {
   //check if the user is an agent
-  const agent = await User.findOne({
-    mobileNumber: user.mobileNumber,
-    role: 'AGENT',
-  });
-  const result = await reqRechargeModel.create({
-    ...payload,
-    agentId: agent?._id,
-  });
-  return result;
+  if (Number(payload.amount) >= 20000) {
+    const agent = await User.findOne({
+      mobileNumber: user.mobileNumber,
+      role: 'AGENT',
+    });
+    const result = await reqRechargeModel.create({
+      ...payload,
+      agentId: agent?._id,
+    });
+    return result;
+  } else {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Minimum amount to recharge is 20000',
+    );
+  }
 };
 
 const viewRechargeRequests = async () => {
@@ -43,13 +52,13 @@ const approveRechargeRequest = async (id: string) => {
     }
 
     const result = await reqRechargeModel.findOneAndUpdate(
-      { agentId: id },
+      { agentId: id, isApproved: false },
       { isApproved: true },
       { new: true, session },
     );
 
     if (result) {
-      const updateAgentBalance = await User.findByIdAndUpdate(
+      const updateAgentBalance = await User.findOneAndUpdate(
         result.agentId,
         { $inc: { balance: result.amount } },
         { new: true, session },
@@ -60,7 +69,6 @@ const approveRechargeRequest = async (id: string) => {
         { $inc: { balance: -result.amount } },
         { new: true, session },
       );
-      console.log(updateAgentBalance, updateAdminBalance);
 
       if (!updateAgentBalance || !updateAdminBalance) {
         throw new Error('Recharge failed');
