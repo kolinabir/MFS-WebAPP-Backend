@@ -167,23 +167,48 @@ const getAllTransactionsOfUserORAgent = async (mobileNumber: number) => {
   }
   const sendMoney = await TransactionSendMoney.find({
     sender: user._id,
+  }).populate({
+    path: 'receiver',
+    select: 'name mobileNumber',
   });
   const receiveMoney = await TransactionSendMoney.find({
     receiver: user._id,
+  }).populate({
+    path: 'sender',
+    select: 'name mobileNumber',
   });
   let cashIn = [];
   if (user.role === 'AGENT') {
     cashIn = await TransactionCashIn.find({
       agent: user._id,
+    }).populate({
+      path: 'user',
+      select: 'name mobileNumber',
     });
   } else {
     cashIn = await TransactionCashIn.find({
       user: user._id,
+    }).populate({
+      path: 'agent',
+      select: 'name mobileNumber',
     });
   }
-  const cashOut = await TransactionCashOut.find({
-    user: user._id,
-  });
+  let cashOut = [];
+  if (user.role === 'USER') {
+    cashOut = await TransactionCashOut.find({
+      user: user._id,
+    }).populate({
+      path: 'agent',
+      select: 'name mobileNumber',
+    });
+  } else {
+    cashOut = await TransactionCashOut.find({
+      agent: user._id,
+    }).populate({
+      path: 'user',
+      select: 'name mobileNumber',
+    });
+  }
 
   const allTransactions = [
     ...sendMoney,
