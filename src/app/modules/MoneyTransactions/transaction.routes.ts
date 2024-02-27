@@ -10,7 +10,7 @@ router.get(
   '/',
   auth(USER_ROLE.USER, USER_ROLE.AGENT),
   UserController.getAllTransactions,
-);
+); //done
 
 router.post(
   '/send-money',

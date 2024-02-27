@@ -3,7 +3,8 @@ import { Types } from 'mongoose';
 export interface TTransactionsSendMoney {
   transactionId?: string;
   sender?: Types.ObjectId;
-  receiver: Types.ObjectId;
+  mobileNumber: number;
+  receiver?: Types.ObjectId;
   amount: number;
   transactionType?: 'SEND' | 'RECEIVE';
   transactionDate?: Date;
@@ -14,7 +15,8 @@ export interface TTransactionsCashOut {
   transactionId?: string;
   user?: Types.ObjectId;
   pin: string;
-  agent: Types.ObjectId;
+  agent?: Types.ObjectId;
+  mobileNumber: number;
   amount: number;
   transactionType?: 'CASH_OUT';
   transactionDate?: Date;

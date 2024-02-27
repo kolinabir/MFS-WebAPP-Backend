@@ -15,8 +15,8 @@ const transactionSendMoneySchema = new Schema<TTransactionsSendMoney>({
   receiver: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
   },
+  mobileNumber: { type: Number, required: true },
   amount: { type: Number, required: true },
   transactionType: { type: String, enum: ['SEND', 'RECEIVE'], required: true },
   transactionDate: { type: Date, default: Date.now },
@@ -32,7 +32,6 @@ const transactionCashOutSchema = new Schema<TTransactionsCashOut>({
   agent: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
   },
   pin: { type: String, required: true },
   amount: { type: Number, required: true },

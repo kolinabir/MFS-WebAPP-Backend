@@ -99,15 +99,27 @@ const getAllTransactions = async (userN: JwtPayload) => {
 
   const sendMoney = await TransactionSendMoney.find({
     sender: user._id,
+  }).populate({
+    path: 'receiver',
+    select: 'name mobileNumber',
   });
   const receiveMoney = await TransactionSendMoney.find({
     receiver: user._id,
+  }).populate({
+    path: 'sender',
+    select: 'name mobileNumber',
   });
   const cashIn = await TransactionCashIn.find({
     user: user._id,
+  }).populate({
+    path: 'agent',
+    select: 'name mobileNumber',
   });
   const cashOut = await TransactionCashOut.find({
     user: user._id,
+  }).populate({
+    path: 'agent',
+    select: 'name mobileNumber',
   });
 
   const allTransactions = [

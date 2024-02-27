@@ -29,7 +29,9 @@ const sendMoneyToUser = async (
     const sender = await User.findOne({
       mobileNumber: user.mobileNumber,
     }).session(session);
-    const receiver = await User.findById(payload.receiver).session(session);
+    const receiver = await User.findOne({
+      mobileNumber: payload.mobileNumber,
+    }).session(session);
     if (!sender || !receiver) {
       throw new Error('User not found');
     }
@@ -38,7 +40,10 @@ const sendMoneyToUser = async (
     }
     if (payload.amount >= 100) {
       payload.transactionCharge = 5;
+    } else {
+      payload.transactionCharge = 0;
     }
+
     const updatedSender = await User.findByIdAndUpdate(
       sender._id,
       { $inc: { balance: -payload.amount - (payload.transactionCharge || 0) } },
@@ -61,6 +66,7 @@ const sendMoneyToUser = async (
     const result = await TransactionSendMoney.create({
       ...payload,
       sender: sender._id,
+      receiver: receiver._id,
       transactionType: 'SEND',
       transactionCharge: payload.transactionCharge || 0,
     });
@@ -86,7 +92,12 @@ const cashOut = async (payload: TTransactionsCashOut, user: JwtPayload) => {
     })
       .select('+pin')
       .session(session);
-    const agentExist = await User.findById(payload.agent).session(session);
+    const agentExist = await User.findOne({
+      mobileNumber: payload.mobileNumber,
+      role: 'AGENT',
+    }).session(session);
+
+    // console.log(agentExist._id, 'agentExist');
     if (!userExist || !agentExist) {
       throw new Error('User Or Agent not found');
     }
@@ -124,6 +135,7 @@ const cashOut = async (payload: TTransactionsCashOut, user: JwtPayload) => {
     const result = await TransactionCashOut.create({
       ...payload,
       user: userExist._id,
+      agent: agentExist._id,
       transactionType: 'CASH_OUT',
       transactionCharge,
     });
@@ -182,7 +194,6 @@ const cashIn = async (payload: TTransactionsCashIn, agent: JwtPayload) => {
       user: userExist._id,
       transactionType: 'CASH_IN',
     });
-
     await session.commitTransaction();
     session.endSession();
 
